@@ -1,0 +1,3 @@
+idEtudiant:1:number,nom:Zaka:String,age:23:number,annee:2:number
+idEtudiant:2:number,nom:Rabe:String,age:24:number,annee:2:number
+idEtudiant:3:number,nom:Rason:String,age:21:number,annee:1:number
