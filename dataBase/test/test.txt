@@ -1,2 +1,6 @@
 nom:coco:varchar
 nom:lala:varchar
+nom:tata:varchar
+nom:boubou:varchar
+nom:potata:varchar
+nom:lolololololololololo:varchar

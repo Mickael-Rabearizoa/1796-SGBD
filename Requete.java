@@ -1,5 +1,6 @@
 package grammaire;
 
+import java.io.Serializable;
 import java.util.Vector;
 
 import dataBase.Bdd;
@@ -7,7 +8,7 @@ import dataBase.Racine;
 import relation.Relation;
 import requete.FunctReq;
 
-public class Requete{
+public class Requete implements Serializable {
     Vector mots;
     String action;
     public Requete(){

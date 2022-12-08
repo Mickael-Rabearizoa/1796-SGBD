@@ -1,8 +1,9 @@
 package grammaire;
 
+import java.io.Serializable;
 import java.util.Vector;
 
-public class Mot{
+public class Mot implements Serializable {
     String syntaxe;
     Mot next;
     Mot prev;

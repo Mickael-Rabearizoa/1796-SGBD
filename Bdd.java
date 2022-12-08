@@ -6,7 +6,7 @@ import relation.Ligne;
 import relation.Relation;
 
 import java.io.*;
-public class Bdd{
+public class Bdd implements Serializable {
     String baseName;
     Vector listRelations = new Vector();
     Grammaire gram;

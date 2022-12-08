@@ -4,7 +4,7 @@ import java.util.Vector;
 
 import dataBase.Bdd;
 import relation.Ligne;
-public class Relation{
+public class Relation implements Serializable {
     Vector lignes = new Vector();
     Bdd database;
     String name;
@@ -96,7 +96,7 @@ public class Relation{
     public int separateTitle(int[] maxColLength){
         int length = maxColLength.length*2;
         for(int i=0;i<maxColLength.length;i++){
-            length = length+maxColLength[i];6
+            length = length+maxColLength[i];
         }
         return length;
     }

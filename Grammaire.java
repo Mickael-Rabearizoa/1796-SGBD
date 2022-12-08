@@ -1,6 +1,7 @@
 package grammaire;
 
 import java.io.File;
+import java.io.Serializable;
 import java.rmi.server.ExportException;
 import java.util.Vector;
 
@@ -12,7 +13,7 @@ import dataBase.Bdd;
 import dataBase.Racine;
 import relation.Relation;
 
-public class Grammaire{
+public class Grammaire implements Serializable {
     Racine noyau;
     Bdd dataBase;
     String[] vocabulaire = new String[24];

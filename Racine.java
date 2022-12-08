@@ -5,10 +5,11 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
+import java.io.Serializable;
 import java.util.Vector;
 import grammaire.Grammaire;
 
-public class Racine{
+public class Racine implements Serializable {
     Vector listBdd = new Vector();
     Grammaire gram;
     public Racine() throws Exception {

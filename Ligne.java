@@ -1,6 +1,7 @@
 package relation;
+import java.io.Serializable;
 import java.util.Vector;
-public class Ligne{
+public class Ligne implements Serializable {
     Vector nomCol = new Vector();
     Vector valeur = new Vector();
     Vector type = new Vector();
