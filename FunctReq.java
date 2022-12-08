@@ -1,6 +1,7 @@
 package requete;
 import java.lang.Class;
 import java.lang.reflect.Field;
+import java.util.Vector;
 
 import relation.Ligne;
 import relation.Relation;
@@ -29,6 +30,13 @@ public class FunctReq {
         } catch (Exception e) {
             throw e;
         }
+    }
+    public String[] vectorIntoString(Vector list){
+        String[] result = new String[list.size()];
+        for(int i=0;i<list.size();i++){
+            result[i] = String.valueOf(list.get(i));
+        }
+        return result;
     }
     public Ligne projeter(Ligne line,String[] nomCol){
         Ligne res = new Ligne();
@@ -156,6 +164,7 @@ public class FunctReq {
         }
         return -1;
     }
+
     public int checkDoublon(Relation table1,Ligne line,int init,String nomCol){
         for(int i=init;i<table1.size();i++){
             if(this.checkAtr(table1.get(i),line,nomCol) == true){
@@ -163,6 +172,22 @@ public class FunctReq {
             }
         }
         return -1;
+    }
+
+    public void deleteDoublon(Relation table,Ligne ligne,int init){
+        for(int i=init;i<table.size();i++){
+            if(this.checkAtr(ligne, table.get(i)) == true){
+                table.delete(i);
+                i=i-1;
+            }
+        }
+    }
+
+    public Relation distinct(Relation table){
+        for(int i=0;i<table.size();i++){
+            this.deleteDoublon(table, table.get(i), i+1);
+        }
+        return table;
     }
     public void unir(Relation table1,Relation table2,Relation result){
         int init=0;
@@ -185,7 +210,6 @@ public class FunctReq {
             }
             this.unir(table1,table2,result);
             return result;
-            // System.out.println(check);
         } catch (Exception e) {
             throw e;
         }
@@ -211,7 +235,6 @@ public class FunctReq {
     public Relation intersectionByCol(Relation table1,Relation table2,String nomCol) throws Exception {
         try {
             Relation result = new Relation();
-            // String check = this.checkNbrCol(table1, table2);
             trier(table1,table1.get(0).getNomCol(0));
             trier(table2,table2.get(0).getNomCol(0));
             int init=0;
@@ -245,29 +268,74 @@ public class FunctReq {
             throw e;
         }
     }
+    public String[] projectWithout(Relation table,String nomCol){
+        String[] allColName = table.get(0).getAllNomCol();
+        Vector listNomCol = new Vector();
+        for(int i=0;i<allColName.length;i++){
+            if(nomCol.compareToIgnoreCase(allColName[i]) !=0){
+                listNomCol.add(allColName[i]);
+            }
+        }
+        String[] listFilterCol = this.vectorIntoString(listNomCol);
+        return listFilterCol;
+    }
     public Relation division(Relation table1,Relation table2,String nomCol) throws Exception {
         try {
-            Relation result = new Relation();
-            if(table2.size() >= 2){
-                String colFilter1 = table2.get(0).get(nomCol);
-                String colFilter2 = table2.get(1).get(nomCol);
-                Relation result1 = this.selection(table1, nomCol, colFilter1, "=");
-                Relation result2 = this.selection(table1, nomCol, colFilter2, "=");
-                result1.affiche();
-                result2.affiche();
-                result = this.intersectionByCol(table1,table2,nomCol);
-                // result.affiche();
-                if(table2.get(2) != null){
-                    for(int i=2;i<table2.size();i++){
-                        String colFilter = table2.get(i).get(nomCol);
-                        Relation tempRelation = this.selection(table1, nomCol, colFilter, "=");
-                        result = this.intersectionByCol(result,tempRelation,nomCol);
-                    }
-                }
-            }
+            String[] listNomCol = this.projectWithout(table1, nomCol);
+            String[] filter = new String[1];
+            filter[0] = nomCol;
+            Relation r = this.projection(table1, listNomCol);
+
+            Relation r1 = this.distinct(r);
+
+            Relation r2 = this.projection(table2, filter);
+
+            Relation r3 = this.produitCartesien(r1, r2);
+
+            Relation r4 = this.soustraction(r3, table1);
+    
+            Relation r5 = this.projection(r4, listNomCol);
+            
+            Relation r6 = this.distinct(r1);
+            
+            Relation r7 = this.distinct(r5);
+            
+            Relation result = this.soustraction(r6, r7);
+            
             return result;
         } catch (Exception e) {
             throw e;
         }
+    }
+
+    public Relation delete(Relation table,String nomCol, String option,String filtre){
+        if(nomCol != null && filtre != null){
+            int indiceNomCol = table.getIndexNomCol(nomCol);
+            if(option.compareToIgnoreCase("=") == 0){
+                for(int i=0;i<table.getAll().size();i++){
+                    if(filtre.compareToIgnoreCase(table.get(i).get(indiceNomCol)) == 0){
+                        if(table.getAll().size() == 1){
+                            table.deleteAll();
+                        } else {
+                            table.delete(i);
+                        }
+                    }
+                }
+            }
+            if(option.compareToIgnoreCase("like") == 0){
+                for(int i=0;i<table.getAll().size();i++){
+                    if(filtre.contains(table.get(i).get(indiceNomCol)) == true){
+                        if(table.getAll().size() == 1){
+                            table.deleteAll();
+                        } else {
+                            table.delete(i);
+                        }
+                    }
+                }
+            }
+        } else {
+            table.deleteAll();
+        }
+        return table;
     }
 }

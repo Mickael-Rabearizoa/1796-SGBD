@@ -1,3 +1,9 @@
 nom:Rakoto:String,age:26:number,salaire:5000:number
 nom:Rabe:String,age:24:number,salaire:2500:number
 nom:Rasoa:String,age:34:number,salaire:1000:number
+nom:Rabe:String,age:24:number,salaire:2500:number
+nom:Rasoa:String,age:34:number,salaire:1000:number
+nom:Rabe:String,age:24:number,salaire:2500:number
+nom:Rabe:String,age:24:number,salaire:2500:number
+nom:Rasoa:String,age:34:number,salaire:1000:number
+nom:Rasoa:String,age:34:number,salaire:1000:number

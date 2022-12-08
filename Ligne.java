@@ -33,6 +33,9 @@ public class Ligne{
         int index = this.getIndex(nomCol);
         return String.valueOf(this.valeur.get(index));
     }
+    public Vector getNomCol(){
+        return this.nomCol;
+    }
     public String getNomCol(int index){
         return String.valueOf(this.nomCol.get(index));
     }
@@ -42,6 +45,9 @@ public class Ligne{
     public String getType(String nomCol){
         int index = this.getIndex(nomCol);
         return String.valueOf(this.type.get(index));
+    }
+    public Vector getType(){
+        return this.type;
     }
     public void set(String nomCol,Object value){
         int index = this.getIndex(nomCol);
@@ -63,29 +69,35 @@ public class Ligne{
         return allColName;
     }   
     public String generateSpaceBetweenCOl(String value,int nbSpace){
-        String space = " ";
-        for(int i=1;i<nbSpace;i++){
-            space = space+" ";
+        if(nbSpace > 0){
+            String space = " ";
+            for(int i=1;i<nbSpace;i++){
+                space = space+" ";
+            }
+            String result = value+space;
+            return result;
+        } else {
+            return value;
         }
-        String result = value+space;
-        return result;
+        
     }
-    public String intoTableValue(String value){
-        int size = 15;
+    public String intoTableValue(String value,int max){
+        int size = max;
         int valSize = value.length();
         String result = this.generateSpaceBetweenCOl(value,size-valSize);
-        result = "|"+result;
+        result = "|"+result+"|";
         return result;
     }
-    public void afficheNomCol(){
+    
+    public void afficheNomCol(int[] maxColLength){
         for(int i=0;i<this.nomCol.size();i++){
-            System.out.print(this.intoTableValue(String.valueOf(this.nomCol.get(i))));
+            System.out.print(this.intoTableValue(String.valueOf(this.nomCol.get(i)),maxColLength[i]));
         }
         System.out.println();
     }
-    public void afficheValue(){
+    public void afficheValue(int[] maxColLength){
         for(int i=0;i<this.valeur.size();i++){
-            System.out.print(this.intoTableValue(String.valueOf(this.valeur.get(i))));
+            System.out.print(this.intoTableValue(String.valueOf(this.valeur.get(i)),maxColLength[i]));
         }
         System.out.println();
     }

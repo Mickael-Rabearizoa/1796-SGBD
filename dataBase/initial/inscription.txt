@@ -1,7 +1,4 @@
-idEtudiant:1:number,idCours:102:number
-idEtudiant:1:number,idCours:103:number
-idEtudiant:2:number,idCours:103:number
-idEtudiant:1:number,idCours:104:number
-idEtudiant:3:number,idCours:102:number
-idEtudiant:2:number,idCours:102:number
-idEtudiant:3:number,idCours:104:number
+idEtudiant:1:number,idCours:c1:String
+idEtudiant:2:number,idCours:c2:String
+idEtudiant:1:number,idCours:c2:String
+idEtudiant:3:number,idCours:c2:String

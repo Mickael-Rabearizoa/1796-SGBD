@@ -4,17 +4,40 @@ import java.io.File;
 import java.rmi.server.ExportException;
 import java.util.Vector;
 
+import javax.xml.crypto.dsig.spec.ExcC14NParameterSpec;
+
 import grammaire.Mot;
 import grammaire.Requete;
 import dataBase.Bdd;
+import dataBase.Racine;
 import relation.Relation;
 
 public class Grammaire{
+    Racine noyau;
     Bdd dataBase;
-    String[] vocabulaire = new String[13];
+    String[] vocabulaire = new String[24];
     Requete requete;
     Relation[] tableReq;
+    String[] types = new String[3];
+    public Grammaire(Racine noyau){
+        intitVocabulaire();
+        this.noyau=noyau;
+        this.types[0]="varchar";
+        this.types[1]="int";
+        this.types[2]="double"; 
+    }
+    public Racine getNoyau() {
+        return noyau;
+    }
+    public void setNoyau(Racine noyau) {
+        this.noyau = noyau;
+    }
     public Grammaire(Bdd dataBase){
+        intitVocabulaire();
+        this.dataBase = dataBase;
+    }
+
+    public void intitVocabulaire(){
         this.vocabulaire[0]="select";
         this.vocabulaire[1]="*";
         this.vocabulaire[2]="from";
@@ -23,12 +46,28 @@ public class Grammaire{
         this.vocabulaire[5]="union";
         this.vocabulaire[6]="intersect";
         this.vocabulaire[7]="soustraction";
-        this.vocabulaire[8]="division";
-        this.vocabulaire[9]="on";
-        this.vocabulaire[10]="where";
-        this.vocabulaire[11]="=";
-        this.vocabulaire[12]="like";
-        this.dataBase = dataBase;
+        this.vocabulaire[8]="distinct";
+        this.vocabulaire[9]="division";
+        this.vocabulaire[10]="on";
+        this.vocabulaire[11]="where";
+        this.vocabulaire[12]="=";
+        this.vocabulaire[13]="like";
+        this.vocabulaire[14]="create";
+        this.vocabulaire[15]="database";
+        this.vocabulaire[16]="use";
+        this.vocabulaire[17]="table";
+        this.vocabulaire[18]="with";
+        this.vocabulaire[19]="insert";
+        this.vocabulaire[20]="into";
+        this.vocabulaire[21]="values";
+        this.vocabulaire[22]="delete";
+        this.vocabulaire[23]="drop";
+    }
+    public String[] getTypes() {
+        return types;
+    }
+    public void setTypes(String[] types) {
+        this.types = types;
     }
     public String[] getVocabulaire() {
         return vocabulaire;
@@ -63,9 +102,6 @@ public class Grammaire{
             
         }
     }
-    // public intitVocabulaire(){
-    //     this.vocabulaire = new Mot[];
-    // }
     public void addlistInVector(Vector splitedNomCol,String[] list){
         for(int i=0;i<list.length;i++){
             splitedNomCol.add(list[i]);
@@ -73,7 +109,6 @@ public class Grammaire{
     }
     public void trimer(String[] list){
         for(int i=0;i<list.length;i++){
-            // System.out.println(list[i]);
             list[i] = list[i].trim();
         }
     }
@@ -134,49 +169,41 @@ public class Grammaire{
         }
         return false;
     }
-    public Vector getTableName()throws Exception{
-        if(this.getRequete().getMot(0).getSyntaxe().compareToIgnoreCase("select") == 0){
-            Vector nomTable = new Vector();
-            Mot from = this.getRequete().getMot("from");
-            if(from == null){
-                throw new Exception("syntaxe manquante: 'from'");
-            } else {
-                if(from.getArgs().isEmpty() == false){
-                    // System.out.println("niditra");
-                    for(int i=0;i<from.getArgs().size();i++){
-                        if(this.checkTableName(from.getArg(i)) == true){
-                            nomTable.add(from.getArg(i));
-                        } else {
-                            throw new Exception("table '"+from.getArg(i)+"' inexistante");
-                        }
-                    }
+    public Vector getTableName(Mot preTable)throws Exception{
+        Vector nomTable = new Vector();
+        if(preTable.getArgs().isEmpty() == false){
+            // System.out.println("niditra");
+            for(int i=0;i<preTable.getArgs().size();i++){
+                if(this.checkTableName(preTable.getArg(i)) == true){
+                    nomTable.add(preTable.getArg(i));
                 } else {
-                    throw new Exception("requete incomplete: nom de table manquant");
+                    throw new Exception("ERREUR: table '"+preTable.getArg(i)+"' inexistante");
                 }
-                return nomTable; 
-            } 
+            }
+        } else {
+            throw new Exception("ERREUR: requete incomplete 'nom de table manquant'");
         }
-        return null;
+        return nomTable; 
     }
     public boolean checkSelectionValue(Mot like) throws Exception {
         if(like.getArgs().isEmpty() == true){
-            throw new Exception("arguments manquantes pour la selection");
+            throw new Exception("ERREUR: arguments manquantes pour la selection");
         } else {
             return true;
         }
     }
     public boolean checkWhereNext(Mot where) throws Exception {
         if(where.getArgs().isEmpty() == true){
-            throw new Exception("nom de colonne manquante pour la selection");
+            throw new Exception("ERREUR: nom de colonne manquante pour la selection");
         } else {
             if(where.getArgs().size() > 1){
-                throw new Exception("trop d'arguments pour la selection");
+                throw new Exception("ERREUR: trop d'arguments pour la selection");
             } else {
                 if(this.checkNomCol(where.getArg(0)) == false){
-                    throw new Exception("nom de colonne innexistante pour la selection");
+                    throw new Exception("ERREUR: nom de colonne innexistante pour la selection");
                 } else {
                     if(where.getNext().getSyntaxe().compareToIgnoreCase("=") != 0 && where.getNext().getSyntaxe().compareToIgnoreCase("like") != 0){
-                        throw new Exception("Syntaxe manquante: 'like' ou '='");
+                        throw new Exception("ERREUR: Syntaxe manquante: 'like' ou '='");
                     } else {
                         return this.checkSelectionValue(where.getNext());
                     }    
@@ -186,21 +213,21 @@ public class Grammaire{
     }
     public boolean checkJoinNext(Mot join) throws Exception {
         if(join.getNext().getSyntaxe().compareToIgnoreCase("on") != 0){
-            throw new Exception("Syntaxe manquante: 'on'");
+            throw new Exception("ERREUR: Syntaxe manquante: 'on'");
         }
         Mot on = join.getNext();
         if(on.getArgs().isEmpty() == true){
-            throw new Exception("nom de colonne absente pour la jointure");
+            throw new Exception("ERREUR: nom de colonne absente pour la jointure");
         } else {
             if(on.getArgs().size() > 1){
-                throw new Exception("trop d'arguments pour la jointure");
+                throw new Exception("ERREUR: trop d'arguments pour la jointure");
             }
             else if(this.checkNomCol(on.getArg(0)) == false){
-                throw new Exception("nom de colonne '"+on.getArg(0)+"' innexistante pour la jointure");
+                throw new Exception("ERREUR: nom de colonne '"+on.getArg(0)+"' innexistante pour la jointure");
             } else {
                 if(on.getNext() != null){
                     if(on.getNext().getSyntaxe().compareToIgnoreCase("where") != 0){
-                        throw new Exception("placement incorrect de '"+on.getNext().getSyntaxe()+"'");
+                        throw new Exception("ERREUR: placement incorrect de '"+on.getNext().getSyntaxe()+"'");
                     } else {
                         return this.checkWhereNext(on.getNext());
                     }
@@ -211,17 +238,17 @@ public class Grammaire{
     }
     public boolean checkDivisionNext(Mot division) throws Exception {
         if(division.getArgs().isEmpty() == true){
-            throw new Exception("nom de colonne absente pour la division");
+            throw new Exception("ERREUR: nom de colonne absente pour la division");
         } else {
             if(division.getArgs().size() > 1){
-                throw new Exception("trop d'argument pour la division");
+                throw new Exception("ERREUR: trop d'argument pour la division");
             }
             else if(this.checkNomCol(division.getArg(0)) == false){
-                throw new Exception("nom de colonne '"+division.getArg(0)+"' innexistante pour la division");
+                throw new Exception("ERREUR: nom de colonne '"+division.getArg(0)+"' innexistante pour la division");
             } else {
                 if(division.getNext() != null){
                     if(division.getNext().getSyntaxe().compareToIgnoreCase("where") != 0){
-                        throw new Exception("placement incorrect de '"+division.getNext().getSyntaxe()+"'");
+                        throw new Exception("ERREUR: placement incorrect de '"+division.getNext().getSyntaxe()+"'");
                     } else {
                         return this.checkWhereNext(division.getNext());
                     }
@@ -231,12 +258,19 @@ public class Grammaire{
         }
     }
     public boolean checkFunction(Mot fonction) throws Exception {
-        if(fonction.getSyntaxe().compareToIgnoreCase("prod") != 0 && fonction.getSyntaxe().compareToIgnoreCase("union") != 0 && fonction.getSyntaxe().compareToIgnoreCase("intersect") != 0 && fonction.getSyntaxe().compareToIgnoreCase("soustraction") != 0){
+        if(fonction.getSyntaxe().compareToIgnoreCase("prod") != 0 && fonction.getSyntaxe().compareToIgnoreCase("union") != 0 && fonction.getSyntaxe().compareToIgnoreCase("intersect") != 0 && fonction.getSyntaxe().compareToIgnoreCase("soustraction") != 0  && fonction.getSyntaxe().compareToIgnoreCase("distinct") != 0){
             return false;
         }
         Mot from = fonction.getPrev();
-        if(from.getArgs().size() != 2){
-            throw new Exception("nombres de tables invalides pour la fonction:'"+fonction.getSyntaxe()+"'");
+        if(fonction.getSyntaxe().compareToIgnoreCase("distinct") == 0){
+            if(from.getArgs().size() != 1){
+                throw new Exception("ERREUR: nombres de tables invalides pour la fonction:'"+fonction.getSyntaxe()+"'");
+            }
+        } else {
+            if(from.getArgs().size() != 2){
+                throw new Exception("ERREUR: nombres de tables invalides pour la fonction:'"+fonction.getSyntaxe()+"'");
+            }
+            return true;
         }
         return true;
     }
@@ -254,11 +288,11 @@ public class Grammaire{
             else if(this.checkFunction(from.getNext()) == true ){
                 return true;
             } else {
-                throw new Exception("placement incorrect de '"+from.getNext().getSyntaxe()+"'");
+                throw new Exception("ERREUR: placement incorrect de '"+from.getNext().getSyntaxe()+"'");
             }
         } else {
             if(from.getArgs().size() > 1){
-                throw new Exception("trop d'argument pour 'from'");
+                throw new Exception("ERRERU: trop d'argument pour 'from'");
             }
             from.setAction("getRelation");
             return true;
@@ -269,7 +303,6 @@ public class Grammaire{
         Mot select = this.requete.getMot(0);
             Mot from;
             if(select.getArgs().isEmpty() == false){
-                // System.out.println("oh nooooo!");
                 for(int i=0;i<select.getArgs().size();i++){
                     try {
                         this.checkListNomCol(select.getArgs());
@@ -279,35 +312,290 @@ public class Grammaire{
                     }
                 }
                 if(select.getNext().getSyntaxe().compareTo("from") != 0){
-                    throw new Exception("syntaxe manquante: 'from'");
+                    throw new Exception("ERREUR: syntaxe manquante: 'from'");
                 }
                 select.setAction("projection");
                 from = select.getNext();
-                // this.requete.setAction("projection");
                 return this.checkFromNext(from);
             } else {
                 Mot all = select.getNext();
                 if(all.getSyntaxe().compareToIgnoreCase("*") != 0){
-                    throw new Exception("placement incorrect de '"+all.getSyntaxe()+"'");
+                    throw new Exception("ERREUR: placement incorrect de '"+all.getSyntaxe()+"'");
                 }
                 if(all.getArgs().isEmpty() == false){
-                    throw new Exception("'from' attendue a la place de '"+all.getArg(0)+"'");
+                    throw new Exception("ERREUR: 'from' attendue a la place de '"+all.getArg(0)+"'");
                 }
                 if(all.getNext().getSyntaxe().compareToIgnoreCase("from") != 0){
-                    throw new Exception("syntaxe manquante: 'from'");
+                    throw new Exception("ERREUR: syntaxe manquante 'from'");
                 }
                 from = all.getNext();
-                // this.requete.setAction("*");
                 return this.checkFromNext(from);
             }
     }
-    public boolean checkRequest() throws Exception {
-        if(this.requete.getMot(0).getSyntaxe().compareToIgnoreCase("select") == 0){
-            return this.checkUntilFrom();
+
+    public boolean checkCreationBddRequest(Mot database) throws Exception {
+        if(database.getNext() != null){   
+            throw new Exception("ERREUR: placement incorrect de '"+database.getNext().getSyntaxe()+"'");
+        }
+        if(database.getArgs().isEmpty() == true){
+            throw new Exception("ERREUR: nom de base de donnee manquante");
+        }
+        return true;
+    }
+    
+    public boolean checkType(String type){
+        for(int i=0;i<this.getTypes().length;i++){
+            if(type.compareToIgnoreCase(this.getTypes()[i]) == 0){
+                return true;
+            }
         }
         return false;
     }
-    //  affiche les actions
+    public boolean checkColumns(Mot with) throws Exception {
+        for(int i=0;i<with.getArgs().size();i++){
+            String arg = String.valueOf(with.getArg(i));
+            if(arg.contains(":") == false){
+                throw new Exception("ERREUR: pres de '"+arg+"'");
+            }
+            String[] args = arg.split(":");
+            String nomCol = args[0];
+            String type = args[1];
+            if(checkType(type) == false){
+                throw new Exception("ERREUR: type inconnue '"+type+"'");
+            }
+        }
+        return true;
+    }
+    public boolean checkNbrCol(Vector columns) throws Exception {
+        if(this.getTableReq()[0].get(0).getFieldNumber() == columns.size()){
+            return true;
+        } else {
+            throw new Exception("ERREUR: nombre de colonne incompatible");
+        }
+    }
+    public boolean checkNomColInsert(Mot values){
+        for(int i=0;i<values.getArgs().size();i++){
+            if(values.getArg(i).compareToIgnoreCase(this.tableReq[0].get(0).getNomCol(i)) != 0){
+                return false;
+            }
+        }
+        return true;
+    }
+    public boolean checkTypeValue(Mot values) throws Exception {
+        for(int i=0;i<values.getArgs().size();i++){
+            if(values.getArg(i).contains(":") == true){
+                String type = this.getTableReq()[0].get(0).getType(i);
+                String value =  values.getArg(i).split(":")[1];
+                if(type.compareToIgnoreCase("int") == 0){
+                    if(value.contains(".") == false){ 
+                        try {
+                            int val = Integer.parseInt(value);
+                        } catch (Exception e) {
+                            // TODO: handle exception
+                            throw new Exception("ERREUR: "+value+" n'est pas un nombre");
+                        }
+                    } else {
+                        throw new Exception("ERREUR: de type:'"+value+"' doit etre int");
+                    }
+                }
+                if(type.compareToIgnoreCase("double") == 0){
+                    try {
+                        double val = Double.parseDouble(value);
+                    } catch (Exception e) {
+                        // TODO: handle exception
+                        throw new Exception("ERREUR: "+value+" n'est pas un nombre");
+                    }
+                }
+            } else {
+                throw new Exception("ERREUR: pres de '"+values.getArg(i)+"'");
+            }
+        }
+        return true;
+    }
+    public boolean checkCreationTableRequest(Mot table) throws Exception {
+        if(table.getArgs().isEmpty() == true){
+            throw new Exception("nom de table manquante");
+        } else {
+            if(table.getArgs().size() == 1){
+                if(table.getNext() != null){
+                    if(table.getNext().getSyntaxe().compareToIgnoreCase("with") == 0){
+                        Mot with = table.getNext();
+                        if(with.getArgs().isEmpty() == false){
+                            return checkColumns(with);
+                        } else {
+                            throw new Exception("ERREUR: pres de '"+with.getSyntaxe()+"'");
+                        }
+                    } else {
+                        throw new Exception("ERREUR: pres de'"+table.getNext().getSyntaxe()+"'");
+                    }
+                } else {
+                    throw new Exception("ERREUR: syntaxe incomplete");
+                }
+            } else {
+                throw new Exception("ERREUR: trop d'argument pour le nom de table");
+            }
+        }
+    }
+    public boolean checkRequest() throws Exception {
+        // select
+        if(this.requete.getMot(0).getSyntaxe().compareToIgnoreCase("select") == 0){
+            return this.checkUntilFrom();
+        }
+        // create
+        if(this.requete.getMot(0).getSyntaxe().compareToIgnoreCase("create") == 0){
+            if(this.requete.getMot(0).getArgs().isEmpty() == false){
+                throw new Exception("ERREUR: pres de:'"+this.requete.getMot(0).getArg(0)+"'");
+            }
+            if(this.requete.getMots().size() < 2){
+                throw new Exception("syntaxe invalide");
+            }
+            if(this.requete.getMot(1).getSyntaxe().compareToIgnoreCase("database") == 0){
+                if(this.checkCreationBddRequest(this.requete.getMot(1)) == true){
+                    return true;
+                }
+            } 
+            if(this.requete.getMot(1).getSyntaxe().compareToIgnoreCase("table") == 0){
+                if(checkCreationTableRequest(this.requete.getMot(1)) == true){
+                    return true;
+                }
+            }
+            throw new Exception("ERREUR: pres de:'"+this.requete.getMot(1).getArg(0)+"'");
+        }
+        // use
+        if(this.requete.getMot(0).getSyntaxe().compareToIgnoreCase("use") == 0){
+            if(this.requete.getMot(0).getArgs().isEmpty() == false){
+                throw new Exception("ERREUR: pres de:'"+this.requete.getMot(0).getArg(0)+"'");
+            }
+            if(this.requete.getMots().size() < 2){
+                throw new Exception("ERREUR: syntaxe invalide");
+            }
+            if(this.requete.getMot(1).getSyntaxe().compareToIgnoreCase("database") == 0){
+                if(this.checkCreationBddRequest(this.requete.getMot(1)) == true){
+                    return true;
+                }
+            } else {
+                throw new Exception("ERREUR: pres de:'"+this.requete.getMot(1).getArg(0)+"'");
+            }
+        }
+        // insert 
+        if(this.requete.getMot(0).getSyntaxe().compareToIgnoreCase("insert") == 0){
+            Mot insert = this.requete.getMot(0);
+            if(insert.getArgs().isEmpty() == true){
+                if(insert.getNext().getSyntaxe().compareToIgnoreCase("into") == 0){
+                    Mot into = insert.getNext();
+                    if(into.getArgs().size() == 1){
+                        if(into.getNext() != null){
+                            if(into.getNext().getSyntaxe().compareToIgnoreCase("values") == 0){
+                                Mot values = into.getNext();
+                                if(values.getArgs().isEmpty() == false){
+                                    Vector tableName = this.getTableName(into);
+                                    // System.out.println(tableName.get(0));
+                                    this.initTableReq(tableName);
+                                    
+                                    this.checkNbrCol(values.getArgs());
+                                    this.checkNomColInsert(values);
+                                    this.checkTypeValue(values);
+                                    return true;
+                                } else {
+                                    throw new Exception("ERREUR: pres de 'values'");
+                                }
+                            } else {
+                                throw new Exception("ERREUR: syntaxe manquante 'values'");
+                            }
+                        } else {
+                            throw new Exception("ERREUR: synataxe incomplete");
+                        }
+                    } else {
+                        throw new Exception("ERREUR: pres de 'into'");
+                    }
+                } else {
+                    throw new Exception("ERREUR: pres de '"+insert.getNext().getSyntaxe()+"'");
+                }
+            } else {
+                throw new Exception("ERREUR: pres de '"+insert.getArg(0)+"'");
+            }
+        }
+        // delete
+        if(this.requete.getMot(0).getSyntaxe().compareToIgnoreCase("delete") == 0){
+            Mot delete = this.requete.getMot(0);
+            if(delete.getArgs().isEmpty()){
+                if(delete.getNext() != null){
+                    if(delete.getNext().getSyntaxe().compareToIgnoreCase("from") == 0){
+                        Mot from = this.getRequete().getMot(1);
+                        if(from.getArgs().size() == 1){
+                            if(from.getNext() != null){
+                                if(from.getNext().getSyntaxe().compareToIgnoreCase("where") == 0){
+                                    Mot where = from.getNext();
+                                    checkWhereNext(where);
+                                    return true;
+                                }
+                            } else {
+                                return true;
+                            }
+                        } else {
+                            throw new Exception("ERREUR: pres de 'from'");
+                        }
+                    } else {
+                        throw new Exception("ERREUR: pres de '"+delete.getNext().getSyntaxe()+"'");
+                    }
+                } else {
+                    throw new Exception("ERREUR: syntaxe manquante 'from'");
+                }
+                
+            } else {
+                throw new Exception("ERREUR: pres de 'delete "+delete.getArg(0)+"'");
+            }
+        }
+        // drop
+        if(this.requete.getMot(0).getSyntaxe().compareToIgnoreCase("drop") == 0){
+            Mot drop = this.requete.getMot(0);
+            if(drop.getArgs().isEmpty()){
+                if(drop.getNext() != null){
+                    if(drop.getNext().getSyntaxe().compareToIgnoreCase("table") == 0){
+                        Mot table = drop.getNext();
+                        if(table.getArgs().size() == 1){
+                            if(table.getNext() == null){
+                                if(this.getData().checkRelationExistence(table.getArg(0)) == true){
+                                    return true;
+                                } else {
+                                    throw new Exception("ERREUR: table '"+table.getArg(0)+"' inexistante");
+                                }
+                            } else {
+                                throw new Exception("ERREUR: pres de '"+table.getNext().getSyntaxe()+"'");
+                            }
+                        } else {
+                            throw new Exception("ERREUR: pres de 'table'");
+                        }
+                    }
+                    else if(drop.getNext().getSyntaxe().compareToIgnoreCase("database") == 0){
+                        Mot database = drop.getNext();
+                        if(database.getArgs().size() == 1){
+                            if(database.getNext() == null){
+                                if(this.getNoyau().checkBDExistence(database.getArg(0)) == true){
+                                    return true;
+                                } else {
+                                    throw new Exception("ERREUR: base '"+database.getArg(0)+"' inexistante");
+                                }
+                            } else {
+                                throw new Exception("ERREUR: pres de '"+database.getNext().getSyntaxe()+"'");
+                            }
+                        } else {
+                            throw new Exception("ERREUR: pres de 'database'");
+                        }
+
+                    } else {
+                        throw new Exception("ERREUR: syntaxe incorrect '"+drop.getNext().getSyntaxe()+"'");
+                    }
+                } else {
+                    throw new Exception("ERREUR: syntaxe incomplete");
+                }
+            } else {
+                throw new Exception("ERREUR: pres de 'delete "+drop.getArg(0)+"'");
+            }
+        }
+
+        return false;
+    }
     public void checkAction(){
         for(int i=0;i<this.requete.getMots().size();i++){
             if(this.requete.getMot(i).getAction() != null){
@@ -315,64 +603,135 @@ public class Grammaire{
             }
         }
     }
-    public void traitementReq(String request) throws Exception {
-        // Vector splitedRequest = new Vector();
-        // if(request.contains("from") == true){
-        //     String[] firstSplit = request.split("from");
-        //     String firstPart = firstSplit[0];
-        //     String secondPart = firstSplit[1];
-
-        //     String[] secondSplit = firstPart.split(" "); 
-        //     String 
-        //     // if(secondSplit[1].trim().compareToIgnoreCase("*") != 0){
-        //     //     for(int i=1;i<secondSplit){
-
-        //     //     }
-        //     // }
-        //     // secondSplit[]
-        //     System.out.println(secondSplit[1]);
-        // }
-        this.requete=new Requete();
-        String[] splited = request.split(" ");
-        int nbMot = 0;
-        for(int i=0;i<splited.length;i++) {
-            boolean check = this.checkVocabulaire(splited[i]);
-            if(check == true){
-                Mot mot = new Mot(splited[i]);
-                if(i != 0){
-                    mot.setPrev(this.requete.getMot(nbMot-1));
-                    this.requete.getMot(nbMot-1).setNext(mot);
+    public boolean checkInitialRequest() throws Exception {
+        if(this.requete.getMots().size() < 2){
+            throw new Exception("ERREUR: aucunne base selectionne");
+        }
+        if(this.requete.getMot(0).getSyntaxe().compareToIgnoreCase("create") == 0 || this.requete.getMot(0).getSyntaxe().compareToIgnoreCase("use") == 0){
+            if(this.requete.getMot(1) != null){
+                if(this.requete.getMot(1).getSyntaxe().compareToIgnoreCase("database") == 0){
+                    return true;
+                } else {
+                    throw new Exception("ERREUR: pres de '"+this.requete.getMot(1).getSyntaxe()+"'");
                 }
-                this.requete.addMot(mot); 
-                nbMot++;
             } else {
-                // System.out.println(splited[i]);
-                Vector args = this.dashSplit(splited[i]);
-                if(i-1 >= 0){
-                    for(int j=0;j<args.size();j++){
-                        this.requete.getMot(nbMot-1).addArg(String.valueOf(args.get(j)));
+                throw new Exception("ERREUR: syntaxe incomplet");
+            }
+        } else if(this.requete.getMot(0).getSyntaxe().compareToIgnoreCase("drop") == 0){
+            Mot drop = this.requete.getMot(0);
+            if(drop.getArgs().isEmpty()){
+                if(drop.getNext() != null){
+                    if(drop.getNext().getSyntaxe().compareToIgnoreCase("database") == 0){
+                        Mot database = drop.getNext();
+                        if(database.getArgs().size() == 1){
+                            if(database.getNext() == null){
+                                if(this.getNoyau().checkBDExistence(database.getArg(0)) == true){
+                                    return true;
+                                } else {
+                                    throw new Exception("ERREUR: base '"+database.getArg(0)+"' inexistante");
+                                }
+                            } else {
+                                throw new Exception("ERREUR: pres de '"+database.getNext().getSyntaxe()+"'");
+                            }
+                        } else {
+                            throw new Exception("ERREUR: pres de 'database'");
+                        }
+                    } else {
+                        throw new Exception("ERREUR: syntaxe incorrect '"+drop.getNext().getSyntaxe()+"'");
                     }
                 } else {
-                    throw new Exception("syntaxe inconnue: '"+splited[i]+"'");
+                    throw new Exception("ERREUR: syntaxe incomplet");
+                }
+            } else {
+                throw new Exception("ERREUR: pres de '"+drop.getArg(0)+"'");
+            }
+        } else {
+            throw new Exception("ERREUR: aucunne base selectionne");
+        }
+    }
+    public Relation traitementReq(Vector request) throws Exception {
+        try {
+            this.requete=new Requete();
+            int nbMot = 0;
+            for(int i=0;i<request.size();i++) {
+                boolean check = this.checkVocabulaire(String.valueOf(request.get(i)));
+                if(check == true){
+                    Mot mot = new Mot(String.valueOf(request.get(i)));
+                    if(i != 0){
+                        mot.setPrev(this.requete.getMot(nbMot-1));
+                        this.requete.getMot(nbMot-1).setNext(mot);
+                    }
+                    this.requete.addMot(mot); 
+                    nbMot++;
+                } else {
+                    if(i-1 >= 0){
+                        this.requete.getMot(nbMot-1).addArg(String.valueOf(request.get(i)));
+                    } else {
+                        throw new Exception("ERREUR: syntaxe inconnue: '"+request.get(i)+"'");
+                    }
                 }
             }
+            
+            // Vector l = this.requete.getMot(0).getArgs();
+            // for(int i=0;i<l.size();i++){
+            //     System.out.println(l.get(i));
+            // }
+            if(this.getData() == null){
+                this.checkInitialRequest();
+                this.requete.initAction();
+                String message = this.requete.initializing(this.noyau);
+                throw new Exception("ok");
+            } else {
+                if(this.requete.getMot(0).getSyntaxe().compareToIgnoreCase("select") == 0 || this.requete.getMot(0).getSyntaxe().compareToIgnoreCase("delete") == 0){
+                    Mot from = this.requete.getMot("from");
+                    if(this.requete.getMot(0).getSyntaxe().compareToIgnoreCase("select") == 0){
+                        if(from != null){
+                            Vector tableName = this.getTableName(from);
+                            this.initTableReq(tableName);
+                    
+                            if(this.checkRequest() == false){
+                                throw new Exception("ERREUR: Syntaxe incorrect");
+                            }
+                            this.requete.initAction();
+                            Relation result = this.requete.query(tableReq);
+                            if(result.isEmpty()){
+                                throw new Exception("aucunne ligne selectionne");
+                            } else {
+                                return result;
+                                // result.affiche();
+                                // System.out.println("ok");
+                            }   
+                        }
+                    } else {
+                        if(from != null){
+                            Vector tableName = this.getTableName(from);
+                            this.initTableReq(tableName);
+                    
+                            if(this.checkRequest() == false){
+                                throw new Exception("ERREUR: Syntaxe incorrect");
+                            }
+                            this.requete.initAction();
+                            this.requete.query(tableReq);
+                            throw new Exception("ok");
+                            // System.out.println("ok");
+                        }   
+                    }
+                } else {
+                    if(this.checkRequest() == false){
+                        throw new Exception("ERREUR: Syntaxe incorrect");
+                    }
+                    this.requete.initAction();
+                    this.requete.exec(noyau);
+                    throw new Exception("ok");
+                    
+                    // System.out.println("ok");
+                }
+            }
+            return null;
+        } catch (Exception e) {
+            // TODO: handle exception
+            // System.out.println(e.getMessage());
+            throw e;
         }
-        // Vector l = this.requete.getMot(0).getArgs();
-        // for(int i=0;i<l.size();i++){
-        //     System.out.println(l.get(i));
-        // }
-        Vector tableName = this.getTableName();
-        if(tableName == null){
-            throw new Exception("not select");
-        }
-        this.initTableReq(tableName);
-        this.checkRequest();
-        // this.checkAction();
-        this.requete.initAction();
-        // System.out.println(this.requete.getAction());
-        Relation result = this.requete.query(tableReq);
-        result.affiche();
-        // System.out.println(result.get(0).get("nom"));
-        System.out.println("ok");
     }
 }

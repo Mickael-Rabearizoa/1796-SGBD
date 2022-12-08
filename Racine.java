@@ -6,16 +6,18 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.util.Vector;
+import grammaire.Grammaire;
 
 public class Racine{
     Vector listBdd = new Vector();
+    Grammaire gram;
     public Racine() throws Exception {
         try {
             initListBdd();
+            this.gram = new Grammaire(this);
         } catch (Exception e) {
             throw e;
         }
-        
     }
     public Vector getListBdd() {
         return listBdd;
@@ -23,42 +25,25 @@ public class Racine{
     public void setListBdd(Vector listBdd) {
         this.listBdd = listBdd;
     }
-    public void initListBdd() throws Exception{
-        File fichier = new File("dataBase/listBdd.txt");
-        try(BufferedReader lecteur = new BufferedReader(new FileReader(fichier)))
-        {
+    public Grammaire getGram() {
+        return gram;
+    }
+    public void setGram(Grammaire gram) {
+        this.gram = gram;
+    }
 
-            String ligne = lecteur.readLine();
-            
-            while(ligne != null) {
-                listBdd.add(ligne);
-                ligne = lecteur.readLine();
-                // System.out.println(ligne);
+    public void initListBdd() throws Exception{
+        File fichier = new File("dataBase");
+        File[] listFile = fichier.listFiles();
+        for(int i=0;i<listFile.length;i++){
+            String BddName = listFile[i].getName();
+            if(BddName.contains(".") == false){
+                listBdd.add(BddName);
             }
-            // System.out.println(ligne);
-        }
-        catch(Exception a)
-        {
-            a.printStackTrace();
-            System.err.println(a);
-            throw a;
         }
     }
-    public void createDataBase(String dataBaseName) throws Exception {
-        try {
-            File fichier = new File("dataBase/listBdd.txt");
-            FileWriter lier_fichier = new FileWriter(fichier , true);
-            BufferedWriter ecrivain = new BufferedWriter(lier_fichier);
-            ecrivain.write(dataBaseName);
-            ecrivain.newLine();
-            ecrivain.close();
-            lier_fichier.close();
-            this.initListBdd();
-        } catch (Exception e) {
-            // e.printStackTrace();
-            throw e;
-        }
-    }
+
+    //  miverifier rah misy ilay Bdd
     public boolean checkBDExistence(String baseName){
         for(int i=0;i<this.listBdd.size();i++){
             if(baseName.compareToIgnoreCase(String.valueOf(this.listBdd.get(i))) == 0){
@@ -67,12 +52,36 @@ public class Racine{
         }
         return false;
     }
+
+    public void createDataBase(String dataBaseName) throws Exception {
+        if(checkBDExistence(dataBaseName) == false){
+            File fichier = new File("dataBase/"+dataBaseName);
+            fichier.mkdir();
+            this.initListBdd();
+        } else {
+            throw new Exception("ERREUR: cette base existe deja");
+        }
+    }
+    public void dropDatabase(String dataBaseName) throws Exception {
+        Bdd dataBase = useDataBase(dataBaseName);
+        dataBase.dropAllTable();
+        File fichier = new File("dataBase/"+dataBaseName);
+        fichier.delete();
+        this.listBdd.clear();
+        initListBdd();
+        if(getGram().getData() != null){
+            if(dataBaseName.compareToIgnoreCase(getGram().getData().getBaseName()) == 0){
+                getGram().setData(null);
+            }
+        }
+    }
+
+    //  mampiasa an'ilay Bdd
     public Bdd useDataBase(String baseName) throws Exception {
         if(checkBDExistence(baseName) == false){
-            throw new Exception("Base de donnees inexistante");
+            throw new Exception("ERREUR: Base de donnees inexistante");
         }
-        Bdd dataBase = new Bdd(baseName);
+        Bdd dataBase = new Bdd(baseName,this.getGram());
         return dataBase;
     }
-    
 }

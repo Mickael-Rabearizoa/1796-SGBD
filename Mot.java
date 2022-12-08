@@ -17,26 +17,50 @@ public class Mot{
     }
 
     public void checkAction(String syntaxe){
-        if(syntaxe.compareTo("where") == 0){
+        if(syntaxe.compareToIgnoreCase("where") == 0){
             this.setAction("selection");
         }
-        if(syntaxe.compareTo("prod") == 0){
+        if(syntaxe.compareToIgnoreCase("prod") == 0){
             this.setAction("produit");
         }
-        if(syntaxe.compareTo("union") == 0){
+        if(syntaxe.compareToIgnoreCase("union") == 0){
             this.setAction("union");
         }
-        if(syntaxe.compareTo("join") == 0){
+        if(syntaxe.compareToIgnoreCase("join") == 0){
             this.setAction("jointure");
         }
-        if(syntaxe.compareTo("intersect") == 0){
+        if(syntaxe.compareToIgnoreCase("intersect") == 0){
             this.setAction("intersection");
         }
-        if(syntaxe.compareTo("soustraction") == 0){
+        if(syntaxe.compareToIgnoreCase("soustraction") == 0){
             this.setAction("soustraction");
         }
-        if(syntaxe.compareTo("division") == 0){
+        if(syntaxe.compareToIgnoreCase("distinct") == 0){
+            this.setAction("distinct");
+        }
+        if(syntaxe.compareToIgnoreCase("division") == 0){
             this.setAction("division");
+        }
+        if(syntaxe.compareToIgnoreCase("create") == 0){
+            this.setAction("create");
+        }
+        if(syntaxe.compareToIgnoreCase("database") == 0){
+            this.setAction("database");
+        }
+        if(syntaxe.compareToIgnoreCase("use") == 0){
+            this.setAction("use");
+        }
+        if(syntaxe.compareToIgnoreCase("table") == 0){
+            this.setAction("table");
+        }
+        if(syntaxe.compareToIgnoreCase("insert") == 0){
+            this.setAction("insert");
+        }
+        if(syntaxe.compareToIgnoreCase("delete") == 0){
+            this.setAction("delete");
+        }
+        if(syntaxe.compareToIgnoreCase("drop") == 0){
+            this.setAction("drop");
         }
     }
     public String getSyntaxe() {

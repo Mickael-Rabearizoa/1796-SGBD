@@ -1,3 +1,2 @@
-idCours:102:number,nomCours:Algo:String
-idCours:103:number,nomCours:Prog:String
-idCours:104:number,nomCours:AdminSys:String
+idCours:c1:String,nomCours:Algo:String
+idCours:c2:String,nomCours:Prog:String
