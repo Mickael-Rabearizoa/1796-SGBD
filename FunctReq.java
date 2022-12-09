@@ -132,11 +132,11 @@ public class FunctReq {
     }
     public String checkNbrCol(Relation table1,Relation table2) throws Exception{
         if(table1.get(0).getFieldNumber() != table2.get(0).getFieldNumber()){
-            throw new Exception("nombre de colonnes different");
+            throw new Exception("ERREUR: nombre de colonnes different");
         } 
         for(int i=0;i<table1.get(0).getFieldNumber();i++){
             if(table1.get(0).getType(i).compareToIgnoreCase(table2.get(0).getType(i)) != 0){
-                throw new Exception("type de colonne incompatible");
+                throw new Exception("ERREUR: type de colonne incompatible");
             }
         }
         return "ok";
@@ -279,34 +279,34 @@ public class FunctReq {
         String[] listFilterCol = this.vectorIntoString(listNomCol);
         return listFilterCol;
     }
-    public Relation division(Relation table1,Relation table2,String nomCol) throws Exception {
-        try {
-            String[] listNomCol = this.projectWithout(table1, nomCol);
-            String[] filter = new String[1];
-            filter[0] = nomCol;
-            Relation r = this.projection(table1, listNomCol);
+    // public Relation division(Relation table1,Relation table2,String nomCol) throws Exception {
+    //     try {
+    //         String[] listNomCol = this.projectWithout(table1, nomCol);
+    //         String[] filter = new String[1];
+    //         filter[0] = nomCol;
+    //         Relation r = this.projection(table1, listNomCol);
 
-            Relation r1 = this.distinct(r);
+    //         Relation r1 = this.distinct(r);
 
-            Relation r2 = this.projection(table2, filter);
+    //         Relation r2 = this.projection(table2, filter);
 
-            Relation r3 = this.produitCartesien(r1, r2);
+    //         Relation r3 = this.produitCartesien(r1, r2);
 
-            Relation r4 = this.soustraction(r3, table1);
+    //         Relation r4 = this.soustraction(r3, table1);
     
-            Relation r5 = this.projection(r4, listNomCol);
+    //         Relation r5 = this.projection(r4, listNomCol);
             
-            Relation r6 = this.distinct(r1);
+    //         Relation r6 = this.distinct(r1);
             
-            Relation r7 = this.distinct(r5);
+    //         Relation r7 = this.distinct(r5);
             
-            Relation result = this.soustraction(r6, r7);
+    //         Relation result = this.soustraction(r6, r7);
             
-            return result;
-        } catch (Exception e) {
-            throw e;
-        }
-    }
+    //         return result;
+    //     } catch (Exception e) {
+    //         throw e;
+    //     }
+    // }
 
     public Relation delete(Relation table,String nomCol, String option,String filtre){
         if(nomCol != null && filtre != null){

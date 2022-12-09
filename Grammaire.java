@@ -16,7 +16,7 @@ import relation.Relation;
 public class Grammaire implements Serializable {
     Racine noyau;
     Bdd dataBase;
-    String[] vocabulaire = new String[24];
+    String[] vocabulaire = new String[23];
     Requete requete;
     Relation[] tableReq;
     String[] types = new String[3];
@@ -48,21 +48,20 @@ public class Grammaire implements Serializable {
         this.vocabulaire[6]="intersect";
         this.vocabulaire[7]="soustraction";
         this.vocabulaire[8]="distinct";
-        this.vocabulaire[9]="division";
-        this.vocabulaire[10]="on";
-        this.vocabulaire[11]="where";
-        this.vocabulaire[12]="=";
-        this.vocabulaire[13]="like";
-        this.vocabulaire[14]="create";
-        this.vocabulaire[15]="database";
-        this.vocabulaire[16]="use";
-        this.vocabulaire[17]="table";
-        this.vocabulaire[18]="with";
-        this.vocabulaire[19]="insert";
-        this.vocabulaire[20]="into";
-        this.vocabulaire[21]="values";
-        this.vocabulaire[22]="delete";
-        this.vocabulaire[23]="drop";
+        this.vocabulaire[9]="on";
+        this.vocabulaire[10]="where";
+        this.vocabulaire[11]="=";
+        this.vocabulaire[12]="like";
+        this.vocabulaire[13]="create";
+        this.vocabulaire[14]="database";
+        this.vocabulaire[15]="use";
+        this.vocabulaire[16]="table";
+        this.vocabulaire[17]="with";
+        this.vocabulaire[18]="insert";
+        this.vocabulaire[19]="into";
+        this.vocabulaire[20]="values";
+        this.vocabulaire[21]="delete";
+        this.vocabulaire[22]="drop";
     }
     public String[] getTypes() {
         return types;
@@ -94,6 +93,7 @@ public class Grammaire implements Serializable {
     public void initTableReq(Vector nomTable) throws Exception {
         this.tableReq = new Relation[nomTable.size()];
         for(int i=0;i<nomTable.size();i++){
+            // System.out.println(nomTable.get(i));
             try {
                 this.tableReq[i] = this.dataBase.getRelation(String.valueOf(nomTable.get(i)));
             } catch (Exception e) {
@@ -190,7 +190,11 @@ public class Grammaire implements Serializable {
         if(like.getArgs().isEmpty() == true){
             throw new Exception("ERREUR: arguments manquantes pour la selection");
         } else {
-            return true;
+            if(like.getNext() == null){
+                return true;
+            } else {
+                throw new Exception("ERREUR: pres de '"+like.getNext().getSyntaxe()+"'");
+            }
         }
     }
     public boolean checkWhereNext(Mot where) throws Exception {
@@ -237,27 +241,27 @@ public class Grammaire implements Serializable {
             }
         }
     }
-    public boolean checkDivisionNext(Mot division) throws Exception {
-        if(division.getArgs().isEmpty() == true){
-            throw new Exception("ERREUR: nom de colonne absente pour la division");
-        } else {
-            if(division.getArgs().size() > 1){
-                throw new Exception("ERREUR: trop d'argument pour la division");
-            }
-            else if(this.checkNomCol(division.getArg(0)) == false){
-                throw new Exception("ERREUR: nom de colonne '"+division.getArg(0)+"' innexistante pour la division");
-            } else {
-                if(division.getNext() != null){
-                    if(division.getNext().getSyntaxe().compareToIgnoreCase("where") != 0){
-                        throw new Exception("ERREUR: placement incorrect de '"+division.getNext().getSyntaxe()+"'");
-                    } else {
-                        return this.checkWhereNext(division.getNext());
-                    }
-                }
-                return true;
-            }
-        }
-    }
+    // public boolean checkDivisionNext(Mot division) throws Exception {
+    //     if(division.getArgs().isEmpty() == true){
+    //         throw new Exception("ERREUR: nom de colonne absente pour la division");
+    //     } else {
+    //         if(division.getArgs().size() > 1){
+    //             throw new Exception("ERREUR: trop d'argument pour la division");
+    //         }
+    //         else if(this.checkNomCol(division.getArg(0)) == false){
+    //             throw new Exception("ERREUR: nom de colonne '"+division.getArg(0)+"' innexistante pour la division");
+    //         } else {
+    //             if(division.getNext() != null){
+    //                 if(division.getNext().getSyntaxe().compareToIgnoreCase("where") != 0){
+    //                     throw new Exception("ERREUR: placement incorrect de '"+division.getNext().getSyntaxe()+"'");
+    //                 } else {
+    //                     return this.checkWhereNext(division.getNext());
+    //                 }
+    //             }
+    //             return true;
+    //         }
+    //     }
+    // }
     public boolean checkFunction(Mot fonction) throws Exception {
         if(fonction.getSyntaxe().compareToIgnoreCase("prod") != 0 && fonction.getSyntaxe().compareToIgnoreCase("union") != 0 && fonction.getSyntaxe().compareToIgnoreCase("intersect") != 0 && fonction.getSyntaxe().compareToIgnoreCase("soustraction") != 0  && fonction.getSyntaxe().compareToIgnoreCase("distinct") != 0){
             return false;
@@ -283,9 +287,9 @@ public class Grammaire implements Serializable {
             else if(from.getNext().getSyntaxe().compareToIgnoreCase("join") == 0){
                 return this.checkJoinNext(from.getNext());
             } 
-            else if(from.getNext().getSyntaxe().compareToIgnoreCase("division") == 0){
-                return this.checkDivisionNext(from.getNext());
-            }
+            // else if(from.getNext().getSyntaxe().compareToIgnoreCase("division") == 0){
+            //     return this.checkDivisionNext(from.getNext());
+            // }
             else if(this.checkFunction(from.getNext()) == true ){
                 return true;
             } else {
@@ -336,7 +340,7 @@ public class Grammaire implements Serializable {
 
     public boolean checkCreationBddRequest(Mot database) throws Exception {
         if(database.getNext() != null){   
-            throw new Exception("ERREUR: placement incorrect de '"+database.getNext().getSyntaxe()+"'");
+            throw new Exception("ERREUR: pres de '"+database.getNext().getSyntaxe()+"'");
         }
         if(database.getArgs().isEmpty() == true){
             throw new Exception("ERREUR: nom de base de donnee manquante");
@@ -422,7 +426,11 @@ public class Grammaire implements Serializable {
                     if(table.getNext().getSyntaxe().compareToIgnoreCase("with") == 0){
                         Mot with = table.getNext();
                         if(with.getArgs().isEmpty() == false){
-                            return checkColumns(with);
+                            if(with.getNext() == null){
+                                return checkColumns(with);
+                            } else {
+                                throw new Exception("ERREUR: pres de '"+with.getNext().getSyntaxe()+"'");
+                            } 
                         } else {
                             throw new Exception("ERREUR: pres de '"+with.getSyntaxe()+"'");
                         }
@@ -489,14 +497,16 @@ public class Grammaire implements Serializable {
                             if(into.getNext().getSyntaxe().compareToIgnoreCase("values") == 0){
                                 Mot values = into.getNext();
                                 if(values.getArgs().isEmpty() == false){
-                                    Vector tableName = this.getTableName(into);
-                                    // System.out.println(tableName.get(0));
-                                    this.initTableReq(tableName);
-                                    
-                                    this.checkNbrCol(values.getArgs());
-                                    this.checkNomColInsert(values);
-                                    this.checkTypeValue(values);
-                                    return true;
+                                    if(values.getNext() == null){
+                                        Vector tableName = this.getTableName(into);
+                                        this.initTableReq(tableName);
+                                        this.checkNbrCol(values.getArgs());
+                                        this.checkNomColInsert(values);
+                                        this.checkTypeValue(values);
+                                        return true;
+                                    } else {
+                                        throw new Exception("ERREUR: pres de '"+values.getNext().getSyntaxe()+"'");
+                                    }
                                 } else {
                                     throw new Exception("ERREUR: pres de 'values'");
                                 }
@@ -611,7 +621,11 @@ public class Grammaire implements Serializable {
         if(this.requete.getMot(0).getSyntaxe().compareToIgnoreCase("create") == 0 || this.requete.getMot(0).getSyntaxe().compareToIgnoreCase("use") == 0){
             if(this.requete.getMot(1) != null){
                 if(this.requete.getMot(1).getSyntaxe().compareToIgnoreCase("database") == 0){
-                    return true;
+                    if(this.requete.getMot(1).getNext() == null){
+                        return true;
+                    } else {
+                        throw new Exception("ERREUR: pres de '"+this.requete.getMot(2).getSyntaxe()+"'");
+                    }
                 } else {
                     throw new Exception("ERREUR: pres de '"+this.requete.getMot(1).getSyntaxe()+"'");
                 }

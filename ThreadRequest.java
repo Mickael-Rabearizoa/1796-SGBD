@@ -65,7 +65,7 @@ public class ThreadRequest extends Thread{
             }
         } catch (Exception e) {
             // TODO: handle exception
-            e.printStackTrace();
+            // e.printStackTrace();
         }
         
     }

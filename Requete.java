@@ -156,11 +156,11 @@ public class Requete implements Serializable {
                 result = funct.jointure(tableReq[0],tableReq[1], on.getArg(0));
                 niditra = true;
             }
-            if(this.action.contains("division") == true){
-                Mot division = this.getMot("division");
-                result = funct.division(tableReq[0], tableReq[1], division.getArg(0));
-                niditra = true;
-            }
+            // if(this.action.contains("division") == true){
+            //     Mot division = this.getMot("division");
+            //     result = funct.division(tableReq[0], tableReq[1], division.getArg(0));
+            //     niditra = true;
+            // }
             if(this.action.contains("delete") == true){
                 if(this.getMot("where") != null){
                     String nomCol = this.getMot("where").getArg(0);
