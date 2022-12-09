@@ -19,6 +19,8 @@ public class Client {
             ObjectInputStream message = new ObjectInputStream(is);
 
             while(end == false){
+                System.out.println();
+                System.out.print("sql>");
                 String req = sc.nextLine();
                 if(req.compareToIgnoreCase("quit") == 0){
                     end = true;
