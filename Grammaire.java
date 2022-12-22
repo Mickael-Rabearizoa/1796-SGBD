@@ -16,7 +16,7 @@ import relation.Relation;
 public class Grammaire implements Serializable {
     Racine noyau;
     Bdd dataBase;
-    String[] vocabulaire = new String[23];
+    String[] vocabulaire = new String[24];
     Requete requete;
     Relation[] tableReq;
     String[] types = new String[3];
@@ -48,20 +48,21 @@ public class Grammaire implements Serializable {
         this.vocabulaire[6]="intersect";
         this.vocabulaire[7]="soustraction";
         this.vocabulaire[8]="distinct";
-        this.vocabulaire[9]="on";
-        this.vocabulaire[10]="where";
-        this.vocabulaire[11]="=";
-        this.vocabulaire[12]="like";
-        this.vocabulaire[13]="create";
-        this.vocabulaire[14]="database";
-        this.vocabulaire[15]="use";
-        this.vocabulaire[16]="table";
-        this.vocabulaire[17]="with";
-        this.vocabulaire[18]="insert";
-        this.vocabulaire[19]="into";
-        this.vocabulaire[20]="values";
-        this.vocabulaire[21]="delete";
-        this.vocabulaire[22]="drop";
+        this.vocabulaire[9]="division";
+        this.vocabulaire[10]="on";
+        this.vocabulaire[11]="where";
+        this.vocabulaire[12]="=";
+        this.vocabulaire[13]="like";
+        this.vocabulaire[14]="create";
+        this.vocabulaire[15]="database";
+        this.vocabulaire[16]="use";
+        this.vocabulaire[17]="table";
+        this.vocabulaire[18]="with";
+        this.vocabulaire[19]="insert";
+        this.vocabulaire[20]="into";
+        this.vocabulaire[21]="values";
+        this.vocabulaire[22]="delete";
+        this.vocabulaire[23]="drop";
     }
     public String[] getTypes() {
         return types;
@@ -241,27 +242,27 @@ public class Grammaire implements Serializable {
             }
         }
     }
-    // public boolean checkDivisionNext(Mot division) throws Exception {
-    //     if(division.getArgs().isEmpty() == true){
-    //         throw new Exception("ERREUR: nom de colonne absente pour la division");
-    //     } else {
-    //         if(division.getArgs().size() > 1){
-    //             throw new Exception("ERREUR: trop d'argument pour la division");
-    //         }
-    //         else if(this.checkNomCol(division.getArg(0)) == false){
-    //             throw new Exception("ERREUR: nom de colonne '"+division.getArg(0)+"' innexistante pour la division");
-    //         } else {
-    //             if(division.getNext() != null){
-    //                 if(division.getNext().getSyntaxe().compareToIgnoreCase("where") != 0){
-    //                     throw new Exception("ERREUR: placement incorrect de '"+division.getNext().getSyntaxe()+"'");
-    //                 } else {
-    //                     return this.checkWhereNext(division.getNext());
-    //                 }
-    //             }
-    //             return true;
-    //         }
-    //     }
-    // }
+    public boolean checkDivisionNext(Mot division) throws Exception {
+        if(division.getArgs().isEmpty() == true){
+            throw new Exception("ERREUR: nom de colonne absente pour la division");
+        } else {
+            if(division.getArgs().size() > 1){
+                throw new Exception("ERREUR: trop d'argument pour la division");
+            }
+            else if(this.checkNomCol(division.getArg(0)) == false){
+                throw new Exception("ERREUR: nom de colonne '"+division.getArg(0)+"' innexistante pour la division");
+            } else {
+                if(division.getNext() != null){
+                    if(division.getNext().getSyntaxe().compareToIgnoreCase("where") != 0){
+                        throw new Exception("ERREUR: placement incorrect de '"+division.getNext().getSyntaxe()+"'");
+                    } else {
+                        return this.checkWhereNext(division.getNext());
+                    }
+                }
+                return true;
+            }
+        }
+    }
     public boolean checkFunction(Mot fonction) throws Exception {
         if(fonction.getSyntaxe().compareToIgnoreCase("prod") != 0 && fonction.getSyntaxe().compareToIgnoreCase("union") != 0 && fonction.getSyntaxe().compareToIgnoreCase("intersect") != 0 && fonction.getSyntaxe().compareToIgnoreCase("soustraction") != 0  && fonction.getSyntaxe().compareToIgnoreCase("distinct") != 0){
             return false;
@@ -287,9 +288,9 @@ public class Grammaire implements Serializable {
             else if(from.getNext().getSyntaxe().compareToIgnoreCase("join") == 0){
                 return this.checkJoinNext(from.getNext());
             } 
-            // else if(from.getNext().getSyntaxe().compareToIgnoreCase("division") == 0){
-            //     return this.checkDivisionNext(from.getNext());
-            // }
+            else if(from.getNext().getSyntaxe().compareToIgnoreCase("division") == 0){
+                return this.checkDivisionNext(from.getNext());
+            }
             else if(this.checkFunction(from.getNext()) == true ){
                 return true;
             } else {
@@ -665,6 +666,7 @@ public class Grammaire implements Serializable {
         }
     }
     public Relation traitementReq(Vector request) throws Exception {
+        //  identifie les mots cles
         try {
             this.requete=new Requete();
             int nbMot = 0;
@@ -687,18 +689,16 @@ public class Grammaire implements Serializable {
                 }
             }
             
-            // Vector l = this.requete.getMot(0).getArgs();
-            // for(int i=0;i<l.size();i++){
-            //     System.out.println(l.get(i));
-            // }
+            // Raha mbola tsy nisafidy base ny client
             if(this.getData() == null){
                 this.checkInitialRequest();
                 this.requete.initAction();
                 String message = this.requete.initializing(this.noyau);
-                throw new Exception("ok");
+                throw new Exception(message);
             } else {
                 if(this.requete.getMot(0).getSyntaxe().compareToIgnoreCase("select") == 0 || this.requete.getMot(0).getSyntaxe().compareToIgnoreCase("delete") == 0){
                     Mot from = this.requete.getMot("from");
+                    // requete mireturn relation
                     if(this.requete.getMot(0).getSyntaxe().compareToIgnoreCase("select") == 0){
                         if(from != null){
                             Vector tableName = this.getTableName(from);
@@ -707,17 +707,18 @@ public class Grammaire implements Serializable {
                             if(this.checkRequest() == false){
                                 throw new Exception("ERREUR: Syntaxe incorrect");
                             }
-                            this.requete.initAction();
+                            this.requete.initAction();                                          //  mameno ny action tokony atao
                             Relation result = this.requete.query(tableReq);
                             if(result.isEmpty()){
                                 throw new Exception("aucunne ligne selectionne");
                             } else {
                                 return result;
-                                // result.affiche();
-                                // System.out.println("ok");
                             }   
                         }
-                    } else {
+                    } 
+                    // tsy mireturn relation fa mila table anaovana operation
+                    else 
+                    {
                         if(from != null){
                             Vector tableName = this.getTableName(from);
                             this.initTableReq(tableName);
@@ -725,27 +726,26 @@ public class Grammaire implements Serializable {
                             if(this.checkRequest() == false){
                                 throw new Exception("ERREUR: Syntaxe incorrect");
                             }
-                            this.requete.initAction();
+                            this.requete.initAction();                                          //  mameno ny action tokony atao                
                             this.requete.query(tableReq);
                             throw new Exception("ok");
-                            // System.out.println("ok");
                         }   
                     }
-                } else {
+                }
+                // requete tsy mireturn relation 
+                else 
+                {
                     if(this.checkRequest() == false){
                         throw new Exception("ERREUR: Syntaxe incorrect");
                     }
-                    this.requete.initAction();
-                    this.requete.exec(noyau);
-                    throw new Exception("ok");
-                    
-                    // System.out.println("ok");
+                    this.requete.initAction();                                                  //  mameno ny action tokony atao  
+                    String message = this.requete.exec(noyau);
+                    throw new Exception(message);
                 }
             }
             return null;
         } catch (Exception e) {
             // TODO: handle exception
-            // System.out.println(e.getMessage());
             throw e;
         }
     }

@@ -12,7 +12,7 @@ public class Requete implements Serializable {
     Vector mots;
     String action;
     public Requete(){
-        this.mots=new Vector();
+        this.mots=new Vector<Mot>();
     }
     public Vector getMots() {
         return mots;
@@ -66,6 +66,7 @@ public class Requete implements Serializable {
         return lString;
     } 
 
+    // rehefa requete tsy mireturn Relation
     public String exec(Racine noyau) throws Exception {
         String message = "erreur";
         if(this.action.contains("create database") == true){
@@ -105,6 +106,7 @@ public class Requete implements Serializable {
         return message;
     }
 
+    //  rehefa mbola tsy nisafidy base ilay olona
     public String initializing(Racine noyau) throws Exception {
         String message = "aucunne base selectionne";
         if(this.action.contains("create database") == true){
@@ -126,6 +128,7 @@ public class Requete implements Serializable {
         return message;
     }
 
+    // rehegfa requete mireturn Relation
     public Relation query(Relation[] tableReq) throws Exception {
         FunctReq funct = new FunctReq();
         Relation result = new Relation();
@@ -156,11 +159,11 @@ public class Requete implements Serializable {
                 result = funct.jointure(tableReq[0],tableReq[1], on.getArg(0));
                 niditra = true;
             }
-            // if(this.action.contains("division") == true){
-            //     Mot division = this.getMot("division");
-            //     result = funct.division(tableReq[0], tableReq[1], division.getArg(0));
-            //     niditra = true;
-            // }
+            if(this.action.contains("division") == true){
+                Mot division = this.getMot("division");
+                result = funct.division(tableReq[0], tableReq[1], division.getArg(0));
+                niditra = true;
+            }
             if(this.action.contains("delete") == true){
                 if(this.getMot("where") != null){
                     String nomCol = this.getMot("where").getArg(0);

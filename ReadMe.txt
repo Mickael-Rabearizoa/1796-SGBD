@@ -17,8 +17,8 @@ _utilisation base  de donnees:
 _creation table:
 	_syntaxe:"create table nom_table with nom_colonne1:type_colonne1 nom_colonne2:type_colonne2 ..."
 	_les types de colonne possibles:_varchar (caractere)
-					_int (entier)
-					_double (decimal)
+									_int (entier)
+									_double (decimal)
 
 _suppression de table:
 	syntaxe:"drop table nom_table"
@@ -58,6 +58,9 @@ _produit cartesien:
 _soustraction:
 	_syntaxe:"select * from nom_table1 nom_table2 soustraction"
 	_NB:pour faire la soustraction de deux tables le nombre et les types des colonnes doivent etre pareil
+
+_Division:
+	_syntaxe"select * from nom_table1 nom_table2 division nom_colonne"
 
 _pour quitter:
 	_syntaxe:"quit"

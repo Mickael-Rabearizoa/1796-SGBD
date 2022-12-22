@@ -29,13 +29,12 @@ public class ThreadRequest extends Thread{
             BufferedReader reader = new BufferedReader(new InputStreamReader(client.getInputStream()));
             Racine racine = new Racine();
             Grammaire gram = racine.getGram();
-            boolean end = false;
             OutputStream os = client.getOutputStream();                         
-            ObjectOutputStream message = new ObjectOutputStream(os);      
-            // message.writeObject(obj);
+            ObjectOutputStream message = new ObjectOutputStream(os);  
+            boolean end = false;    
 
             while(end == false){
-                String requete = reader.readLine();
+                String requete = reader.readLine();                         //  maka ilay requete avy any am client
 
                 Scanner scan = new Scanner(requete);
                 Vector request = new Vector();
@@ -44,24 +43,16 @@ public class ThreadRequest extends Thread{
                 }
 
                 if(request.isEmpty()){
-
+                    message.writeObject(" ");
                 } else {
-                    String quit = String.valueOf(request.get(0)); 
-                    if(quit.compareToIgnoreCase("quit") == 0){
-                        end = true;
-                    } else {
-                        try {
-                            Relation table = gram.traitementReq(request);
-                            message.writeObject(table);
-                            // table.affiche();
-                        } catch (Exception e) {
-                            // TODO: handle exception
-                            // System.out.println(e.getMessage());
-                            message.writeObject(e);
-                        }
+                    try {
+                        Relation table = gram.traitementReq(request);
+                        message.writeObject(table);
+                    } catch (Exception e) {
+                        // TODO: handle exception
+                        message.writeObject(e);
                     }
                 }
-                // System.out.println(requete);
             }
         } catch (Exception e) {
             // TODO: handle exception

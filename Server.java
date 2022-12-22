@@ -18,10 +18,9 @@ public class Server{
             ServerSocket server = new ServerSocket( 1796); 
             
             while(true){
-                Socket client = server.accept(); 
-                BufferedReader reader = new BufferedReader(new InputStreamReader(client.getInputStream()));
-
-                ThreadRequest thread = new ThreadRequest(client);
+                Socket client = server.accept();                            //  mandray client vaovao
+            
+                ThreadRequest thread = new ThreadRequest(client);           //  mamorona thread ho an'ilay client vaovao
                 thread.start();
             }
         } catch (Exception e) {

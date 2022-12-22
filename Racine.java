@@ -56,6 +56,9 @@ public class Racine implements Serializable {
 
     public void createDataBase(String dataBaseName) throws Exception {
         if(checkBDExistence(dataBaseName) == false){
+            if(dataBaseName.contains(".")){
+                throw new Exception("ERREUR: le nom de la base de donnee ne doit pas contenir de '.'");
+            }
             File fichier = new File("dataBase/"+dataBaseName);
             fichier.mkdir();
             this.initListBdd();

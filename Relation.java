@@ -5,7 +5,7 @@ import java.util.Vector;
 import dataBase.Bdd;
 import relation.Ligne;
 public class Relation implements Serializable {
-    Vector lignes = new Vector();
+    Vector lignes = new Vector<Ligne>();
     Bdd database;
     String name;
     public Relation() {
